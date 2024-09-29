@@ -1,35 +1,44 @@
-import { WizardContextWizard, WizardScene, type WizardContext } from "telegraf/scenes";
+import { WizardScene } from "telegraf/scenes";
 import { AnotherImpactText, StartKeyboard } from "../../keyboards/cmd-keyboard";
 import { EnterExpertise, EnterKeyboard, EnterScale, EnterTaxpayerStatus } from "../../keyboards/scenes-keyboard/collect-contacts";
+import { GoogleSheetsService } from "../../services/GoogleSheetsService";
 
 
 export const enterCollectClientDataScene = (ctx: any) => {
     ctx.scene.enter("collectDataAboutClient");
 }
-
+const GoogleService = new GoogleSheetsService;
 export const collectClientDataScene = new WizardScene(
     "collectDataAboutClient",
     (ctx: any) => {
+        ctx.wizard.state.clientData = [];
+        ctx.wizard.state.clientData.push(ctx.message.text);
         ctx.reply("Який бюджет ви плануєте виділити на відкриття? в доларах США ($)");
         return ctx.wizard.next();
     },
     (ctx: any) => {
+        ctx.wizard.state.clientData.push(ctx.message.text);
         ctx.reply("Чи маєте ви досвід у сфері фастфуду або ресторанного бізнесу?", EnterExpertise);
         return ctx.wizard.next();
     },
     (ctx: any) => {
+        ctx.wizard.state.clientData.push(ctx.message.text);
         ctx.reply("На яку квадратуру розраховуєте ?", EnterScale);
         return ctx.wizard.next();
     },
     (ctx: any) => {
+        ctx.wizard.state.clientData.push(ctx.message.text);
         ctx.reply("Чи маєте ви зареєстрований ФОП/ТОВ для ведення бізнесу?", EnterTaxpayerStatus);
         return ctx.wizard.next();
     },
     (ctx: any) => {
-        ctx.reply("Скільки годин на день готові приділяти вашому бізнесу");
+        ctx.wizard.state.clientData.push(ctx.message.text);
+        ctx.reply("Скільки годин на день готові приділяти вашому бізнесу", EnterKeyboard);
         return ctx.wizard.next();
     },
     (ctx: any) => {
+        ctx.wizard.state.clientData.push(ctx.message.text);
+        GoogleService.appendData(ctx.wizard.state.clientData);
         ctx.reply(AnotherImpactText.finishCollectData, StartKeyboard)
         ctx.scene.leave();
     }
