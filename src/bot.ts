@@ -6,11 +6,13 @@ import {
 } from 'telegraf';
 
 
+import { cmd, inline_cmd } from './utils/cmd.ts';
 // commands
 import start from './commands/start.ts';
 import { faq_command, faqAnswer_command } from './commands/faq.ts';
-import { cmd, inline_cmd } from './utils/cmd.ts';
 import { collectClientDataScene, enterCollectClientDataScene } from './commands/scenes/collect-contacts.ts';
+import { usersPagination, anotherPageInUsersList, getUser } from './commands/users/users.ts';
+import adminGroupMiddleware from './middleware/admin-group.middleware.ts';
 
 
 
@@ -28,10 +30,14 @@ const setupBot = () => {
     // commands
     bot.start(start);
     bot.hears(cmd.faq, faq_command);
-    bot.hears(cmd.contact, enterCollectClientDataScene)
+    bot.hears(cmd.contact, enterCollectClientDataScene);
+
     // inline commands
     bot.action(inline_cmd.faq.key, faqAnswer_command);
-
+    // admin handlers
+    bot.command('users', adminGroupMiddleware, usersPagination);
+    bot.action(/[0-9]+.USERS_PAGE/, adminGroupMiddleware, anotherPageInUsersList)
+    bot.action(/[0-9]+.GET-USER/, adminGroupMiddleware, getUser)
     return bot;
 }
 
