@@ -61,7 +61,7 @@ export const collectClientDataScene = new WizardScene(
 
 collectClientDataScene.start(async (ctx) => {
     ctx.scene.leave()
-    ctx.reply("test", await StartKeyboard(ctx.from.id))
+    ctx.reply("Форму скасовано.", await StartKeyboard(ctx.from.id))
 });
 collectClientDataScene.enter(async (ctx) => {
     if (ctx.from.id) {
