@@ -6,7 +6,7 @@ import { inline_cmd } from "../utils/cmd";
 
 
 export const faq_command = async (ctx: Context) => {
-    const title = `title`;
+    const title = `FAQ`;
     ctx.reply(title, FaqKeyboard);
 }
 

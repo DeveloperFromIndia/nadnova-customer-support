@@ -61,6 +61,9 @@ export const makeCall = async (ctx: IExtendedCtx) => {
         const match = ctx.match;
         if (match) {
             const telegramId = Number(match[0].split(' ')[0]);
+            if (telegramId == Number(ctx.from?.id)) {
+                return ctx.reply("Опція недоступна");
+            }
             const clientInCallStatus = await CallService.isClientInCall(telegramId);
             if (!!clientInCallStatus) {
                 ctx.answerCbQuery();
@@ -72,6 +75,7 @@ export const makeCall = async (ctx: IExtendedCtx) => {
                 ctx.answerCbQuery();
                 return ctx.reply("Клієнт заблокував бота.");
             }
+        
             await CallService.makeCall(telegramId, Number(ctx.from?.id));
             ctx.answerCbQuery();
             return ctx.reply("Клієнт готовий отримувати повідомлення.");
@@ -104,11 +108,14 @@ export const transferMessage = async (ctx: any) => {
     if (telegramId) {
         const res = await CallService.isClientInCall(telegramId);
         const client = res?.dataValues.clientId == telegramId;
-
         let targetId = client ? Number(process.env.TELEGRAM_GROUP_ID) : res?.dataValues.clientId;
 
         if (ctx.message.text) {
-            const messageToClient: any = await sendMessageToUser(targetId, ctx.message.text);
+            let text = ctx.message.text;
+            if(Number(process.env.TELEGRAM_GROUP_ID) == targetId) {
+                text = `${ctx.from.username}: ${text}`;
+            }
+            const messageToClient: any = await sendMessageToUser(targetId, text);
             if (!messageToClient?.message_id) {
                 return ctx.reply("Клієнт заблокував бота.");
             }

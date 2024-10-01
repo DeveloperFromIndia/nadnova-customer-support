@@ -1,8 +1,10 @@
+import dotenv from 'dotenv'; dotenv.config();
 import { WizardScene } from "telegraf/scenes";
 import { AnotherImpactText, StartKeyboard } from "../../keyboards/cmd-keyboard";
 import { EnterExpertise, EnterKeyboard, EnterScale, EnterTaxpayerStatus } from "../../keyboards/scenes-keyboard/collect-contacts";
 import { GoogleSheetsService } from "../../services/GoogleSheetsService";
 import UserService from "../../services/UserService";
+import { sendMessageToUser } from '../../bot';
 
 
 export const enterCollectClientDataScene = (ctx: any) => {
@@ -13,6 +15,7 @@ export const collectClientDataScene = new WizardScene(
     "collectDataAboutClient",
     (ctx: any) => {
         ctx.wizard.state.clientData = [];
+        ctx.wizard.state.clientData.push(`https://t.me/${ctx.from?.username}`);
         ctx.wizard.state.clientData.push(ctx.message.text);
         ctx.reply("Який бюджет ви плануєте виділити на відкриття? в доларах США ($)");
         return ctx.wizard.next();
@@ -43,12 +46,23 @@ export const collectClientDataScene = new WizardScene(
         if (ctx.from?.id && ctx.from?.username) {
             await UserService.craeteNewUser(ctx.from?.id, ctx.from?.username);
         }
-        ctx.reply(AnotherImpactText.finishCollectData, await StartKeyboard(ctx.from.id));
+        const chatId = process.env.TELEGRAM_GROUP_ID;
+        if (chatId) {
+            sendMessageToUser(Number(chatId), "Клієнт залишив заявку!")
+        }
+        const kb = await StartKeyboard(ctx.from.id)
+        ctx.replyWithHTML(AnotherImpactText.finishCollectData, {
+            disable_web_page_preview: true,
+            reply_markup: kb.reply_markup
+        });
         ctx.scene.leave();
     }
 );
 
-collectClientDataScene.start((ctx) => ctx.scene.leave());
+collectClientDataScene.start(async (ctx) => {
+    ctx.scene.leave()
+    ctx.reply("test", await StartKeyboard(ctx.from.id))
+});
 collectClientDataScene.enter(async (ctx) => {
     if (ctx.from.id) {
         const user = await UserService.getUser(ctx.from.id);
@@ -60,7 +74,7 @@ collectClientDataScene.enter(async (ctx) => {
         }
     }
 })
-collectClientDataScene.hears(AnotherImpactText.cancelCollectData, async (ctx) => { 
+collectClientDataScene.hears(AnotherImpactText.cancelCollectData, async (ctx) => {
     ctx.reply(AnotherImpactText.leaveCollectData, await StartKeyboard(ctx.from.id));
-    ctx.scene.leave() 
+    ctx.scene.leave()
 });
