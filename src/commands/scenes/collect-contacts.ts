@@ -1,10 +1,11 @@
 import dotenv from 'dotenv'; dotenv.config();
 import { WizardScene } from "telegraf/scenes";
 import { AnotherImpactText, StartKeyboard } from "../../keyboards/cmd-keyboard";
-import { EnterExpertise, EnterKeyboard, EnterScale, EnterTaxpayerStatus } from "../../keyboards/scenes-keyboard/collect-contacts";
+import { EnterExpertise, EnterKeyboard, EnterPhoneNumber, EnterScale, EnterTaxpayerStatus } from "../../keyboards/scenes-keyboard/collect-contacts";
 import { GoogleSheetsService } from "../../services/GoogleSheetsService";
 import UserService from "../../services/UserService";
 import { sendMessageToUser } from '../../bot';
+import { Markup } from 'telegraf'; // asdasdasd
 
 
 export const enterCollectClientDataScene = (ctx: any) => {
@@ -15,9 +16,32 @@ export const collectClientDataScene = new WizardScene(
     "collectDataAboutClient",
     (ctx: any) => {
         ctx.wizard.state.clientData = [];
-        ctx.wizard.state.clientData.push(`https://t.me/${ctx.from?.username}`);
         ctx.wizard.state.clientData.push(ctx.message.text);
-        ctx.reply("Який бюджет ви плануєте виділити на відкриття? в доларах США ($)");
+        if (!ctx.from?.username) {
+            ctx.wizard.state.clientData.push(`username відсутня`);
+        } else {
+            ctx.wizard.state.clientData.push(`https://t.me/${ctx.from?.username}`);
+        }
+        ctx.reply("Ваш номер телефону", EnterPhoneNumber);
+        return ctx.wizard.next();
+    },
+    (ctx: any) => {
+        if (ctx.message.contact) {
+            // If user send phone number with special button
+            ctx.wizard.state.clientData.push(ctx.message.contact.phone_number); 
+        } else {
+            const phoneNumber = ctx.message.text;
+            const phoneRegex = /^\d{9,15}$/; 
+
+            if (!phoneRegex.test(phoneNumber)) {
+                ctx.reply("Будь ласка, введіть правильний номер телефону, що складається лише з цифр (від 9 до 15)");
+                return; 
+            }
+
+            ctx.wizard.state.clientData.push(phoneNumber); 
+        }
+
+        ctx.reply("Який бюджет ви плануєте виділити на відкриття? в доларах США ($)", EnterKeyboard);
         return ctx.wizard.next();
     },
     (ctx: any) => {
@@ -47,9 +71,7 @@ export const collectClientDataScene = new WizardScene(
             await UserService.craeteNewUser(ctx.from?.id, ctx.from?.username);
         }
         const chatId = process.env.TELEGRAM_GROUP_ID;
-        if (chatId) {
-            sendMessageToUser(Number(chatId), "Клієнт залишив заявку!")
-        }
+        // const res = await sendMessageToUser(Number(chatId), "Клієнт залишив заявку!")
         const kb = await StartKeyboard(ctx.from.id)
         ctx.replyWithHTML(AnotherImpactText.finishCollectData, {
             disable_web_page_preview: true,

@@ -7,6 +7,13 @@ export const EnterKeyboard = Markup.keyboard(
     ]
 ).resize();
 
+export const EnterPhoneNumber = Markup.keyboard(
+    [
+        [Markup.button.contactRequest(AnotherImpactText.collectPhone)],
+        [AnotherImpactText.cancelCollectData],
+    ]
+).resize();
+
 // Чи маєте ви досвід у сфері фастфуду або ресторанного бізнесу?
 export const EnterExpertise = Markup.keyboard(
     [

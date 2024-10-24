@@ -34,4 +34,5 @@ export const AnotherImpactText = {
 <a href="mishafastfood.com.ua">Сайт</a>
     `,
     leaveCollectData: `Форму скасовано.`,
+    collectPhone: `Ваш номер телефону`
 }
