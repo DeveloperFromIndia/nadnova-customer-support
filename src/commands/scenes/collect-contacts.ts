@@ -71,7 +71,7 @@ export const collectClientDataScene = new WizardScene(
             await UserService.craeteNewUser(ctx.from?.id, ctx.from?.username);
         }
         const chatId = process.env.TELEGRAM_GROUP_ID;
-        // const res = await sendMessageToUser(Number(chatId), "Клієнт залишив заявку!")
+        const res = await sendMessageToUser(Number(chatId), "Клієнт залишив заявку!")
         const kb = await StartKeyboard(ctx.from.id)
         ctx.replyWithHTML(AnotherImpactText.finishCollectData, {
             disable_web_page_preview: true,
